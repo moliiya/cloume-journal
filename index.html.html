@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cloumé">
+<meta name="theme-color" content="#FAF7F2">
+<title>Cloumé Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,400;1,500&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #FAF7F2;
+    --text: #2C1F14;
+    --text-light: #5C4A3A;
+    --text-faint: #59483c;
+    --line: #B5A292;
+    --line-soft: #C4B09E;
+    --accent: #8B7355;
+    --accent-light: #E8DDD4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ─── NAV ─── */
+  .nav-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: var(--bg);
+    border-top: 1px solid var(--line-soft);
+    padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .nav-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-faint); font-family: 'DM Sans', sans-serif;
+    font-size: 9px; font-weight: 300; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 4px 12px;
+    transition: color 0.2s;
+  }
+  .nav-btn svg { width: 20px; height: 20px; stroke-width: 1.3; }
+  .nav-btn.active { color: var(--text); }
+  .nav-btn.active svg { stroke-width: 1.8; }
+
+  /* ─── PAGES ─── */
+  .page { display: none; min-height: 100dvh; padding: 0 0 80px; }
+  .page.active { display: block; }
+
+  /* ─── COVER ─── */
+  #page-cover {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 100dvh;
+    text-align: center;
+    padding: 40px 32px 80px;
+  }
+  .cover-ornament {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, transparent, var(--line), transparent);
+    margin-bottom: 32px;
+  }
+  .cover-title {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: clamp(48px, 14vw, 72px);
+    color: var(--text);
+    letter-spacing: 0.02em;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .cover-sub {
+    font-size: 10px; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--text-faint);
+    margin-bottom: 40px;
+  }
+  .cover-divider {
+    display: flex; align-items: center; gap: 12px;
+    width: 160px; margin-bottom: 40px;
+  }
+  .cover-divider span { flex: 1; height: 1px; background: var(--line-soft); }
+  .cover-divider-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--line); }
+  .cover-date {
+    font-family: 'EB Garamond', serif; font-style: italic;
+    font-size: 18px; color: var(--text-light);
+    margin-bottom: 8px;
+  }
+  .cover-greeting {
+    font-size: 12px; color: var(--text-faint);
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .cover-start-btn {
+    margin-top: 48px;
+    background: none; border: 1px solid var(--line);
+    color: var(--text-light); font-family: 'DM Sans', sans-serif;
+    font-weight: 300; font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; padding: 14px 32px;
+    cursor: pointer; transition: all 0.25s;
+  }
+  .cover-start-btn:active { background: var(--accent-light); }
+
+  /* ─── SECTION HEADER ─── */
+  .section-header {
+    padding: 48px 24px 24px;
+    border-bottom: 1px solid var(--line-soft);
+    margin-bottom: 0;
+  }
+  .section-label {
+    font-size: 9px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-family: 'EB Garamond', serif; font-style: italic;
+    font-size: 32px; color: var(--text); line-height: 1.1;
+  }
+  .section-date-small {
+    font-size: 11px; color: var(--text-faint);
+    letter-spacing: 0.08em; margin-top: 4px;
+  }
+
+  /* ─── FIELD BLOCKS ─── */
+  .field-block {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .field-label {
+    font-size: 9px; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+  .field-input {
+    width: 100%; background: none; border: none;
+    font-family: 'DM Sans', sans-serif; font-weight: 300;
+    font-size: 15px; color: var(--text);
+    outline: none; resize: none;
+    line-height: 1.7; min-height: 40px;
+  }
+  .field-input::placeholder { color: var(--line); }
+
+  /* Mood selector */
+  .mood-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .mood-btn {
+    background: none; border: 1px solid var(--line-soft);
+    border-radius: 20px; padding: 6px 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px;
+    color: var(--text-light); cursor: pointer;
+    transition: all 0.2s; letter-spacing: 0.04em;
+  }
+  .mood-btn.selected {
+    background: var(--text); color: var(--bg);
+    border-color: var(--text);
+  }
+
+  /* Schedule */
+  .schedule-row {
+    display: grid; grid-template-columns: 44px 1fr;
+    gap: 0; border-bottom: 1px solid rgba(181,162,146,0.3);
+    padding: 0;
+  }
+  .schedule-row:last-child { border-bottom: none; }
+  .schedule-time {
+    font-size: 11px; color: var(--text-faint);
+    letter-spacing: 0.05em; padding: 10px 0;
+    border-right: 1px solid rgba(181,162,146,0.3);
+  }
+  .schedule-input {
+    background: none; border: none;
+    font-family: 'DM Sans', sans-serif; font-weight: 300;
+    font-size: 13px; color: var(--text);
+    outline: none; padding: 10px 12px; width: 100%;
+  }
+  .schedule-input::placeholder { color: var(--line-soft); }
+
+  /* To-do items */
+  .todo-list { display: flex; flex-direction: column; gap: 6px; }
+  .todo-item {
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .todo-check {
+    width: 16px; height: 16px; flex-shrink: 0;
+    border: 1px solid var(--line); background: none;
+    cursor: pointer; margin-top: 3px;
+    appearance: none; -webkit-appearance: none;
+    position: relative; transition: all 0.2s;
+  }
+  .todo-check:checked {
+    background: var(--text); border-color: var(--text);
+  }
+  .todo-check:checked::after {
+    content: ''; position: absolute;
+    left: 4px; top: 1px; width: 5px; height: 9px;
+    border: 1.5px solid var(--bg); border-top: none; border-left: none;
+    transform: rotate(45deg);
+  }
+  .todo-text {
+    flex: 1; background: none; border: none;
+    font-family: 'DM Sans', sans-serif; font-weight: 300;
+    font-size: 14px; color: var(--text); outline: none;
+    line-height: 1.6; padding: 0;
+  }
+  .todo-text::placeholder { color: var(--line); }
+  .todo-text.done { text-decoration: line-through; color: var(--text-faint); }
+  .add-todo-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 11px; color: var(--text-faint);
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 8px 0 0; display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ─── WEEKLY ─── */
+  .week-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 1px; background: var(--line-soft);
+    border: 1px solid var(--line-soft); margin: 0 24px 20px;
+  }
+  .week-day-col {
+    background: var(--bg); padding: 8px 6px;
+    min-height: 100px;
+  }
+  .week-day-name {
+    font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 6px; text-align: center;
+  }
+  .week-day-input {
+    width: 100%; background: none; border: none;
+    font-family: 'DM Sans', sans-serif; font-weight: 300;
+    font-size: 11px; color: var(--text); outline: none;
+    resize: none; min-height: 60px; line-height: 1.5;
+  }
+  .week-of-row {
+    padding: 16px 24px 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .week-of-label {
+    font-size: 9px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--text-faint); flex-shrink: 0;
+  }
+  .week-of-input {
+    background: none; border: none; border-bottom: 1px solid var(--line-soft);
+    font-family: 'DM Sans', sans-serif; font-weight: 300;
+    font-size: 13px; color: var(--text); outline: none;
+    flex: 1; padding-bottom: 4px;
+  }
+
+  /* ─── REFLECTION ─── */
+  .reflection-feelings {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .feeling-btn {
+    background: none; border: 1px solid var(--line-soft);
+    border-radius: 20px; padding: 7px 16px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    color: var(--text-light); cursor: pointer; transition: all 0.2s;
+  }
+  .feeling-btn.selected { background: var(--accent-light); border-color: var(--accent); }
+
+  .three-things { display: flex; flex-direction: column; gap: 12px; }
+  .thing-row {
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .thing-num {
+    font-family: 'EB Garamond', serif; font-style: italic;
+    font-size: 18px; color: var(--line); flex-shrink: 0; line-height: 1.4;
+  }
+  .thing-input {
+    flex: 1; background: none; border: none;
+    border-bottom: 1px solid var(--line-soft);
+    font-family: 'DM Sans', sans-serif; font-weight: 300;
+    font-size: 14px; color: var(--text); outline: none;
+    padding-bottom: 6px; width: 100%;
+  }
+  .thing-input::placeholder { color: var(--line); }
+
+  /* ─── 100 DAY ─── */
+  .challenge-grid {
+    display: grid; grid-template-columns: repeat(10, 1fr);
+    gap: 6px; padding: 20px 24px;
+  }
+  .day-dot {
+    aspect-ratio: 1; border-radius: 50%;
+    border: 1px solid var(--line-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; color: var(--text-faint);
+    cursor: pointer; transition: all 0.2s; background: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .day-dot.done {
+    background: var(--text); border-color: var(--text); color: var(--bg);
+  }
+  .day-dot.today-dot {
+    border-color: var(--accent); color: var(--accent); font-weight: 400;
+  }
+  .challenge-progress {
+    padding: 0 24px 8px;
+    font-size: 11px; color: var(--text-faint); letter-spacing: 0.08em;
+  }
+
+  /* ─── NOTES ─── */
+  .notes-area {
+    padding: 20px 24px;
+    min-height: calc(100dvh - 180px);
+  }
+  .notes-textarea {
+    width: 100%; background: none; border: none;
+    font-family: 'DM Sans', sans-serif; font-weight: 300;
+    font-size: 15px; color: var(--text); outline: none;
+    resize: none; line-height: 2;
+    min-height: calc(100dvh - 220px);
+    background-image: repeating-linear-gradient(
+      transparent, transparent calc(2em - 1px),
+      rgba(181,162,146,0.2) calc(2em - 1px),
+      rgba(181,162,146,0.2) 2em
+    );
+    background-attachment: local;
+  }
+  .notes-textarea::placeholder { color: var(--line); }
+
+  /* ─── SAVE INDICATOR ─── */
+  .save-dot {
+    position: fixed; top: 16px; right: 16px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--line); opacity: 0;
+    transition: opacity 0.3s; z-index: 200;
+  }
+  .save-dot.show { opacity: 1; }
+
+  /* ─── HISTORY BANNER ─── */
+  .history-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px; background: var(--accent-light);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .history-bar span { font-size: 11px; color: var(--text-light); letter-spacing: 0.06em; }
+  .history-close {
+    background: none; border: none; cursor: pointer;
+    font-size: 16px; color: var(--text-faint); line-height: 1;
+  }
+  .history-nav {
+    display: flex; gap: 8px; padding: 12px 24px 0;
+  }
+  .history-nav-btn {
+    background: none; border: 1px solid var(--line-soft);
+    padding: 6px 14px; font-size: 11px; letter-spacing: 0.1em;
+    color: var(--text-light); cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .history-nav-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: var(--bg);
+    font-size: 12px; letter-spacing: 0.1em;
+    padding: 10px 20px; opacity: 0;
+    transition: all 0.3s; pointer-events: none;
+    z-index: 300; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<!-- Save indicator -->
+<div class="save-dot" id="saveDot"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════ COVER ══════════════════ -->
+<div class="page active" id="page-cover">
+  <div class="cover-ornament"></div>
+  <div class="cover-title">Cloumé</div>
+  <div class="cover-sub">J O U R N A L</div>
+  <div class="cover-divider">
+    <span></span><div class="cover-divider-dot"></div><span></span>
+  </div>
+  <div class="cover-date" id="coverDate"></div>
+  <div class="cover-greeting" id="coverGreeting"></div>
+  <button class="cover-start-btn" onclick="goToPage('daily')">begin today</button>
+</div>
+
+<!-- ══════════════════ DAILY ══════════════════ -->
+<div class="page" id="page-daily">
+  <div class="section-header">
+    <div class="section-label">— daily planner —</div>
+    <div class="section-title">daily</div>
+    <div class="section-date-small" id="dailyDateDisplay"></div>
+  </div>
+
+  <!-- Mood -->
+  <div class="field-block">
+    <div class="field-label">M O O D</div>
+    <div class="mood-row" id="moodRow">
+      <button class="mood-btn" data-mood="🌿 calm">🌿 calm</button>
+      <button class="mood-btn" data-mood="☀️ happy">☀️ happy</button>
+      <button class="mood-btn" data-mood="🌧 low">🌧 low</button>
+      <button class="mood-btn" data-mood="⚡ anxious">⚡ anxious</button>
+      <button class="mood-btn" data-mood="🌙 tired">🌙 tired</button>
+      <button class="mood-btn" data-mood="🔥 motivated">🔥 motivated</button>
+    </div>
+  </div>
+
+  <!-- Today's Focus -->
+  <div class="field-block">
+    <div class="field-label">T O D A Y ' S  F O C U S</div>
+    <textarea class="field-input" id="dailyFocus" placeholder="what matters most today..." rows="2"></textarea>
+  </div>
+
+  <!-- To-Do -->
+  <div class="field-block">
+    <div class="field-label">T O - D O</div>
+    <div class="todo-list" id="todoList"></div>
+    <button class="add-todo-btn" onclick="addTodo('todo')">+ add item</button>
+  </div>
+
+  <!-- If I Have Time -->
+  <div class="field-block">
+    <div class="field-label">I F  I  H A V E  T I M E</div>
+    <div class="todo-list" id="ifTimeList"></div>
+    <button class="add-todo-btn" onclick="addTodo('iftime')">+ add item</button>
+  </div>
+
+  <!-- Schedule -->
+  <div class="field-block">
+    <div class="field-label">S C H E D U L E</div>
+    <div id="scheduleBlock"></div>
+  </div>
+
+  <!-- Gratitude -->
+  <div class="field-block">
+    <div class="field-label">G R A T I T U D E</div>
+    <textarea class="field-input" id="dailyGratitude" placeholder="I am grateful for..." rows="3"></textarea>
+  </div>
+</div>
+
+<!-- ══════════════════ WEEKLY ══════════════════ -->
+<div class="page" id="page-weekly">
+  <div class="section-header">
+    <div class="section-label">— weekly planner —</div>
+    <div class="section-title">weekly</div>
+  </div>
+
+  <div class="week-of-row">
+    <span class="week-of-label">W E E K  O F</span>
+    <input class="week-of-input" id="weekOf" placeholder="e.g. Apr 21 – 27">
+  </div>
+
+  <div class="week-grid" id="weekGrid"></div>
+
+  <div class="field-block">
+    <div class="field-label">P R I O R I T I E S</div>
+    <textarea class="field-input" id="weekPriorities" placeholder="this week's priorities..." rows="3"></textarea>
+  </div>
+  <div class="field-block">
+    <div class="field-label">R E M I N D E R S</div>
+    <textarea class="field-input" id="weekReminders" placeholder="don't forget..." rows="2"></textarea>
+  </div>
+  <div class="field-block">
+    <div class="field-label">N E X T  W E E K</div>
+    <textarea class="field-input" id="weekNext" placeholder="looking ahead..." rows="2"></textarea>
+  </div>
+  <div class="field-block">
+    <div class="field-label">N O T E S</div>
+    <textarea class="field-input" id="weekNotes" placeholder="anything else..." rows="3"></textarea>
+  </div>
+</div>
+
+<!-- ══════════════════ REFLECTION ══════════════════ -->
+<div class="page" id="page-reflection">
+  <div class="section-header">
+    <div class="section-label">— reflection —</div>
+    <div class="section-title">reflection</div>
+    <div class="section-date-small" id="reflDateDisplay"></div>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">H O W  D I D  I  F E E L  T O D A Y ?</div>
+    <div class="reflection-feelings" id="feelingsRow">
+      <button class="feeling-btn" data-feeling="at peace">at peace</button>
+      <button class="feeling-btn" data-feeling="grateful">grateful</button>
+      <button class="feeling-btn" data-feeling="proud">proud</button>
+      <button class="feeling-btn" data-feeling="overwhelmed">overwhelmed</button>
+      <button class="feeling-btn" data-feeling="content">content</button>
+      <button class="feeling-btn" data-feeling="restless">restless</button>
+      <button class="feeling-btn" data-feeling="hopeful">hopeful</button>
+      <button class="feeling-btn" data-feeling="drained">drained</button>
+    </div>
+    <textarea class="field-input" id="reflFeelings" placeholder="in my own words..." rows="2" style="margin-top:12px"></textarea>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">T H R E E  G R E A T  T H I N G S</div>
+    <div class="three-things">
+      <div class="thing-row"><span class="thing-num">i.</span><input class="thing-input" id="thing1" placeholder="..."></div>
+      <div class="thing-row"><span class="thing-num">ii.</span><input class="thing-input" id="thing2" placeholder="..."></div>
+      <div class="thing-row"><span class="thing-num">iii.</span><input class="thing-input" id="thing3" placeholder="..."></div>
+    </div>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">C H A L L E N G E S  O F  T H E  D A Y</div>
+    <textarea class="field-input" id="reflChallenges" placeholder="what was hard..." rows="3"></textarea>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">A C H I E V E M E N T S</div>
+    <textarea class="field-input" id="reflAchievements" placeholder="what I'm proud of..." rows="3"></textarea>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">I  A M  G R A T E F U L  F O R</div>
+    <textarea class="field-input" id="reflGrateful" placeholder="..." rows="2"></textarea>
+  </div>
+</div>
+
+<!-- ══════════════════ 100 DAY ══════════════════ -->
+<div class="page" id="page-challenge">
+  <div class="section-header">
+    <div class="section-label">— 100-day challenge —</div>
+    <div class="section-title">100 days<br>with myself</div>
+    <div class="section-date-small" style="font-style:italic;font-family:'EB Garamond',serif;font-size:13px;margin-top:4px">a gentle journey, one day at a time</div>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">M Y  C H A L L E N G E</div>
+    <textarea class="field-input" id="challengeTitle" placeholder="what I'm committing to..." rows="2"></textarea>
+  </div>
+
+  <div class="challenge-progress" id="challengeProgress">0 / 100 days</div>
+  <div class="challenge-grid" id="challengeGrid"></div>
+
+  <div class="field-block">
+    <div class="field-label">H O W  I T  F E E L S</div>
+    <textarea class="field-input" id="challengeFeel" placeholder="reflections on this journey..." rows="4"></textarea>
+  </div>
+</div>
+
+<!-- ══════════════════ NOTES ══════════════════ -->
+<div class="page" id="page-notes">
+  <div class="section-header">
+    <div class="section-label">— notes —</div>
+    <div class="section-title">notes</div>
+  </div>
+  <div class="notes-area">
+    <textarea class="notes-textarea" id="notesText" placeholder="a quiet place for your thoughts..."></textarea>
+  </div>
+</div>
+
+<!-- ══════════════════ NAV BAR ══════════════════ -->
+<nav class="nav-bar">
+  <button class="nav-btn active" id="nav-cover" onclick="goToPage('cover')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    home
+  </button>
+  <button class="nav-btn" id="nav-daily" onclick="goToPage('daily')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    daily
+  </button>
+  <button class="nav-btn" id="nav-weekly" onclick="goToPage('weekly')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="10"/><line x1="15" y1="4" x2="15" y2="10"/></svg>
+    weekly
+  </button>
+  <button class="nav-btn" id="nav-reflection" onclick="goToPage('reflection')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    reflect
+  </button>
+  <button class="nav-btn" id="nav-challenge" onclick="goToPage('challenge')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    100 days
+  </button>
+  <button class="nav-btn" id="nav-notes" onclick="goToPage('notes')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    notes
+  </button>
+</nav>
+
+<script>
+// ════════════════════════════════════
+// DATE & STORAGE UTILITIES
+// ════════════════════════════════════
+
+const HOURS = ['06:00','07:00','08:00','09:00','10:00','11:00','12:00',
+               '13:00','14:00','15:00','16:00','17:00','18:00',
+               '19:00','20:00','21:00','22:00','23:00'];
+
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getWeekKey() {
+  const d = new Date();
+  const day = d.getDay();
+  const sun = new Date(d); sun.setDate(d.getDate() - day);
+  return `week-${sun.getFullYear()}-${String(sun.getMonth()+1).padStart(2,'0')}-${String(sun.getDate()).padStart(2,'0')}`;
+}
+
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+  flashSave();
+}
+
+function load(key, def) {
+  try {
+    const v = localStorage.getItem(key);
+    return v !== null ? JSON.parse(v) : def;
+  } catch(e) { return def; }
+}
+
+function flashSave() {
+  const dot = document.getElementById('saveDot');
+  dot.classList.add('show');
+  clearTimeout(dot._t);
+  dot._t = setTimeout(() => dot.classList.remove('show'), 1200);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════
+
+let currentPage = 'cover';
+
+function goToPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  currentPage = name;
+  window.scrollTo(0, 0);
+}
+
+// ════════════════════════════════════
+// COVER
+// ════════════════════════════════════
+
+function initCover() {
+  const d = new Date();
+  const months = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  document.getElementById('coverDate').textContent =
+    `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+
+  const hr = d.getHours();
+  let greeting = hr < 12 ? 'good morning' : hr < 17 ? 'good afternoon' : 'good evening';
+  document.getElementById('coverGreeting').textContent = greeting;
+}
+
+// ════════════════════════════════════
+// DAILY
+// ════════════════════════════════════
+
+let todoData = { todo: [], iftime: [] };
+let scheduleData = {};
+
+function initDaily() {
+  const dk = todayKey();
+  const d = new Date();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('dailyDateDisplay').textContent =
+    `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('reflDateDisplay').textContent =
+    `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+
+  // Mood
+  const savedMood = load(`daily-mood-${dk}`, null);
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    if (btn.dataset.mood === savedMood) btn.classList.add('selected');
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      save(`daily-mood-${dk}`, btn.dataset.mood);
+    });
+  });
+
+  // Focus
+  bindTextarea('dailyFocus', `daily-focus-${dk}`);
+
+  // Gratitude
+  bindTextarea('dailyGratitude', `daily-gratitude-${dk}`);
+
+  // To-do
+  todoData.todo = load(`daily-todo-${dk}`, [{ text: '', done: false }]);
+  todoData.iftime = load(`daily-iftime-${dk}`, [{ text: '', done: false }]);
+  renderTodos('todo');
+  renderTodos('iftime');
+
+  // Schedule
+  scheduleData = load(`daily-schedule-${dk}`, {});
+  renderSchedule();
+}
+
+function bindTextarea(id, key) {
+  const el = document.getElementById(id);
+  el.value = load(key, '');
+  el.addEventListener('input', () => save(key, el.value));
+}
+
+function renderTodos(type) {
+  const container = document.getElementById(type === 'todo' ? 'todoList' : 'ifTimeList');
+  container.innerHTML = '';
+  const items = todoData[type];
+  items.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'todo-item';
+    const check = document.createElement('input');
+    check.type = 'checkbox'; check.className = 'todo-check';
+    check.checked = item.done;
+    const input = document.createElement('input');
+    input.type = 'text'; input.className = 'todo-text' + (item.done ? ' done' : '');
+    input.placeholder = 'add a task...'; input.value = item.text;
+    check.addEventListener('change', () => {
+      items[i].done = check.checked;
+      input.classList.toggle('done', check.checked);
+      saveTodos(type);
+    });
+    input.addEventListener('input', () => { items[i].text = input.value; saveTodos(type); });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); addTodo(type); }
+    });
+    row.appendChild(check); row.appendChild(input);
+    container.appendChild(row);
+  });
+}
+
+function addTodo(type) {
+  todoData[type].push({ text: '', done: false });
+  renderTodos(type);
+  saveTodos(type);
+  const list = document.getElementById(type === 'todo' ? 'todoList' : 'ifTimeList');
+  const inputs = list.querySelectorAll('.todo-text');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+function saveTodos(type) {
+  const dk = todayKey();
+  save(type === 'todo' ? `daily-todo-${dk}` : `daily-iftime-${dk}`, todoData[type]);
+}
+
+function renderSchedule() {
+  const dk = todayKey();
+  const block = document.getElementById('scheduleBlock');
+  block.innerHTML = '';
+  HOURS.forEach(h => {
+    const row = document.createElement('div');
+    row.className = 'schedule-row';
+    const timeEl = document.createElement('div');
+    timeEl.className = 'schedule-time'; timeEl.textContent = h;
+    const inp = document.createElement('input');
+    inp.className = 'schedule-input'; inp.type = 'text';
+    inp.placeholder = '—'; inp.value = scheduleData[h] || '';
+    inp.addEventListener('input', () => {
+      scheduleData[h] = inp.value;
+      save(`daily-schedule-${dk}`, scheduleData);
+    });
+    row.appendChild(timeEl); row.appendChild(inp);
+    block.appendChild(row);
+  });
+}
+
+// ════════════════════════════════════
+// WEEKLY
+// ════════════════════════════════════
+
+function initWeekly() {
+  const wk = getWeekKey();
+
+  // Week-of input
+  const woEl = document.getElementById('weekOf');
+  woEl.value = load(`${wk}-of`, '');
+  woEl.addEventListener('input', () => save(`${wk}-of`, woEl.value));
+
+  // Day grid
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = '';
+  DAYS.forEach(day => {
+    const col = document.createElement('div'); col.className = 'week-day-col';
+    const name = document.createElement('div'); name.className = 'week-day-name'; name.textContent = day;
+    const ta = document.createElement('textarea'); ta.className = 'week-day-input';
+    const dayKey = `${wk}-day-${day}`;
+    ta.value = load(dayKey, '');
+    ta.addEventListener('input', () => save(dayKey, ta.value));
+    col.appendChild(name); col.appendChild(ta);
+    grid.appendChild(col);
+  });
+
+  bindTextarea('weekPriorities', `${wk}-priorities`);
+  bindTextarea('weekReminders', `${wk}-reminders`);
+  bindTextarea('weekNext', `${wk}-next`);
+  bindTextarea('weekNotes', `${wk}-notes`);
+}
+
+// ════════════════════════════════════
+// REFLECTION
+// ════════════════════════════════════
+
+function initReflection() {
+  const dk = todayKey();
+
+  // Feeling buttons
+  const savedFeelings = load(`refl-feelings-${dk}`, []);
+  document.querySelectorAll('.feeling-btn').forEach(btn => {
+    if (savedFeelings.includes(btn.dataset.feeling)) btn.classList.add('selected');
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('selected');
+      const selected = [...document.querySelectorAll('.feeling-btn.selected')].map(b => b.dataset.feeling);
+      save(`refl-feelings-${dk}`, selected);
+    });
+  });
+
+  bindTextarea('reflFeelings', `refl-feel-text-${dk}`);
+  bindInput('thing1', `refl-thing1-${dk}`);
+  bindInput('thing2', `refl-thing2-${dk}`);
+  bindInput('thing3', `refl-thing3-${dk}`);
+  bindTextarea('reflChallenges', `refl-challenges-${dk}`);
+  bindTextarea('reflAchievements', `refl-achievements-${dk}`);
+  bindTextarea('reflGrateful', `refl-grateful-${dk}`);
+}
+
+function bindInput(id, key) {
+  const el = document.getElementById(id);
+  el.value = load(key, '');
+  el.addEventListener('input', () => save(key, el.value));
+}
+
+// ════════════════════════════════════
+// 100-DAY CHALLENGE
+// ════════════════════════════════════
+
+function initChallenge() {
+  const doneDays = load('challenge-done', []);
+  const startDate = load('challenge-start', null);
+
+  bindTextarea('challengeTitle', 'challenge-title');
+  bindTextarea('challengeFeel', 'challenge-feel');
+
+  const grid = document.getElementById('challengeGrid');
+  grid.innerHTML = '';
+
+  // Current day in challenge
+  let todayNum = null;
+  if (startDate) {
+    const diff = Math.floor((new Date(todayKey()) - new Date(startDate)) / 86400000) + 1;
+    if (diff >= 1 && diff <= 100) todayNum = diff;
+  }
+
+  for (let i = 1; i <= 100; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'day-dot';
+    btn.textContent = i;
+    if (doneDays.includes(i)) btn.classList.add('done');
+    if (i === todayNum) btn.classList.add('today-dot');
+
+    btn.addEventListener('click', () => {
+      // Set start date on first tap
+      if (!load('challenge-start', null) && !doneDays.includes(i)) {
+        save('challenge-start', todayKey());
+      }
+      const idx = doneDays.indexOf(i);
+      if (idx > -1) doneDays.splice(idx, 1);
+      else doneDays.push(i);
+      save('challenge-done', doneDays);
+      btn.classList.toggle('done');
+      updateChallengeProgress(doneDays);
+    });
+    grid.appendChild(btn);
+  }
+  updateChallengeProgress(doneDays);
+}
+
+function updateChallengeProgress(doneDays) {
+  document.getElementById('challengeProgress').textContent =
+    `${doneDays.length} / 100 days`;
+}
+
+// ════════════════════════════════════
+// NOTES
+// ════════════════════════════════════
+
+function initNotes() {
+  bindTextarea('notesText', 'notes-main');
+}
+
+// ════════════════════════════════════
+// INIT ALL
+// ════════════════════════════════════
+
+function init() {
+  initCover();
+  initDaily();
+  initWeekly();
+  initReflection();
+  initChallenge();
+  initNotes();
+}
+
+init();
+</script>
+</body>
+</html>
