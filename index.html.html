@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cloumé">
+<meta name="theme-color" content="#FAF7F2">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<title>Cloumé Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,400;1,500&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF7F2;--text:#2C1F14;--tl:#5C4A3A;--tf:#59483c;
+  --ln:#B5A292;--ls:#C4B09E;--ac:#8B7355;--al:#E8DDD4;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100dvh;overflow-x:hidden}
+
+/* NAV */
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg);border-top:1px solid var(--ls);padding:8px 0 max(8px,env(safe-area-inset-bottom));z-index:100}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;color:var(--tf);font-family:'DM Sans',sans-serif;font-size:8px;font-weight:300;letter-spacing:0.08em;text-transform:uppercase;padding:2px 0;transition:color 0.15s}
+.nb svg{width:18px;height:18px;stroke-width:1.3;stroke:currentColor;fill:none}
+.nb.on{color:var(--text)}
+.nb.on svg{stroke-width:1.8}
+
+/* PAGES */
+.page{display:none;min-height:100dvh;padding-bottom:72px}
+.page.on{display:block}
+
+/* COVER */
+.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;text-align:center;padding:40px 24px 80px}
+.cv-line{width:1px;height:48px;background:linear-gradient(to bottom,transparent,var(--ln),transparent);margin-bottom:24px}
+.cv-title{font-family:'EB Garamond',serif;font-style:italic;font-size:clamp(48px,14vw,72px);color:var(--text);line-height:1;margin-bottom:4px}
+.cv-sub{font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:var(--tf);margin-bottom:28px}
+.cv-div{display:flex;align-items:center;gap:10px;width:120px;margin-bottom:28px}
+.cv-div span{flex:1;height:1px;background:var(--ls)}
+.cv-dot{width:3px;height:3px;border-radius:50%;background:var(--ln)}
+.cv-date{font-family:'EB Garamond',serif;font-style:italic;font-size:16px;color:var(--tl);margin-bottom:6px}
+.cv-greet{font-size:10px;color:var(--tf);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:36px}
+.cv-btn{background:none;border:1px solid var(--ln);color:var(--tl);font-family:'DM Sans',sans-serif;font-weight:300;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;padding:12px 28px;cursor:pointer;transition:background 0.2s}
+.cv-btn:active{background:var(--al)}
+
+/* SECTION HEADER */
+.sh{padding:48px 20px 18px;border-bottom:1px solid var(--ls)}
+.sl{font-size:8px;letter-spacing:0.28em;text-transform:uppercase;color:var(--tf);margin-bottom:4px}
+.st{font-family:'EB Garamond',serif;font-style:italic;font-size:28px;color:var(--text);line-height:1.1}
+.sd{font-size:10px;color:var(--tf);letter-spacing:0.06em;margin-top:3px}
+
+/* FIELDS */
+.fb{padding:16px 20px;border-bottom:1px solid var(--ls)}
+.fl{font-size:8px;letter-spacing:0.22em;text-transform:uppercase;color:var(--tf);margin-bottom:8px}
+.fi{width:100%;background:none;border:none;font-family:'DM Sans',sans-serif;font-weight:300;font-size:14px;color:var(--text);outline:none;resize:none;line-height:1.7}
+.fi::placeholder{color:var(--ls)}
+.fi:disabled{opacity:0.6}
+
+/* MOOD */
+.mrow{display:flex;gap:6px;flex-wrap:wrap}
+.mb{background:none;border:1px solid var(--ls);border-radius:16px;padding:5px 11px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--tl);cursor:pointer;transition:all 0.15s}
+.mb.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.mb:disabled{opacity:0.5;cursor:default}
+
+/* TODO */
+.tl{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.ti{display:flex;align-items:flex-start;gap:8px}
+.tc{width:14px;height:14px;flex-shrink:0;border:1px solid var(--ln);background:none;cursor:pointer;appearance:none;-webkit-appearance:none;position:relative;transition:all 0.15s;margin-top:3px}
+.tc:checked{background:var(--text);border-color:var(--text)}
+.tc:checked::after{content:'';position:absolute;left:3px;top:1px;width:5px;height:8px;border:1.5px solid var(--bg);border-top:none;border-left:none;transform:rotate(45deg)}
+.tc:disabled{opacity:0.5;cursor:default}
+.tt{flex:1;background:none;border:none;font-family:'DM Sans',sans-serif;font-weight:300;font-size:13px;color:var(--text);outline:none;line-height:1.6;padding:0}
+.tt::placeholder{color:var(--ls)}
+.tt.done{text-decoration:line-through;color:var(--tf)}
+.tt:disabled{opacity:0.7}
+.add-btn{background:none;border:none;cursor:pointer;font-size:10px;color:var(--tf);letter-spacing:0.14em;text-transform:uppercase;padding:4px 0}
+
+/* SCHEDULE */
+.sc-row{display:grid;grid-template-columns:40px 1fr;border-bottom:1px solid rgba(181,162,146,0.25)}
+.sc-time{font-size:10px;color:var(--tf);letter-spacing:0.04em;padding:8px 0;border-right:1px solid rgba(181,162,146,0.25);text-align:center}
+.sc-in{background:none;border:none;font-family:'DM Sans',sans-serif;font-weight:300;font-size:12px;color:var(--text);outline:none;padding:8px 10px;width:100%}
+.sc-in::placeholder{color:rgba(181,162,146,0.5)}
+.sc-in:disabled{opacity:0.6}
+
+/* WEEK GRID */
+.wg{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--ls);border:1px solid var(--ls);margin:12px 20px}
+.wd{background:var(--bg);padding:6px 4px;min-height:80px}
+.wdn{font-size:7px;letter-spacing:0.1em;text-transform:uppercase;color:var(--tf);margin-bottom:4px;text-align:center}
+.wdi{width:100%;background:none;border:none;font-family:'DM Sans',sans-serif;font-weight:300;font-size:10px;color:var(--text);outline:none;resize:none;min-height:50px;line-height:1.4}
+.wdi:disabled{opacity:0.6}
+
+/* REFLECTION */
+.rf{display:flex;gap:6px;flex-wrap:wrap}
+.rb{background:none;border:1px solid var(--ls);border-radius:16px;padding:5px 12px;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--tl);cursor:pointer;transition:all 0.15s}
+.rb.on{background:var(--al);border-color:var(--ac)}
+.rb:disabled{opacity:0.5;cursor:default}
+.three{display:flex;flex-direction:column;gap:10px}
+.thr{display:flex;align-items:flex-start;gap:8px}
+.thn{font-family:'EB Garamond',serif;font-style:italic;font-size:16px;color:var(--ln);flex-shrink:0;line-height:1.4}
+.thi{flex:1;background:none;border:none;border-bottom:1px solid var(--ls);font-family:'DM Sans',sans-serif;font-weight:300;font-size:13px;color:var(--text);outline:none;padding-bottom:5px;width:100%}
+.thi::placeholder{color:var(--ls)}
+.thi:disabled{opacity:0.6}
+
+/* 100 DAY */
+.cgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;padding:16px 20px}
+.dd{aspect-ratio:1;border-radius:50%;border:1px solid var(--ls);display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--tf);cursor:pointer;transition:all 0.15s;background:none;font-family:'DM Sans',sans-serif}
+.dd.on{background:var(--text);border-color:var(--text);color:var(--bg)}
+.dd.today-d{border-color:var(--ac);color:var(--ac)}
+.cprog{padding:0 20px 4px;font-size:10px;color:var(--tf);letter-spacing:0.06em}
+
+/* NOTES */
+.nta{width:100%;background:none;border:none;font-family:'DM Sans',sans-serif;font-weight:300;font-size:14px;color:var(--text);outline:none;resize:none;line-height:2;min-height:400px;padding:20px 20px 16px;background-image:repeating-linear-gradient(transparent,transparent calc(2em - 1px),rgba(181,162,146,0.2) calc(2em - 1px),rgba(181,162,146,0.2) 2em);background-attachment:local;background-position:0 19px}
+.nta::placeholder{color:var(--ls)}
+
+/* ══════════════════════════════
+   HISTORY CALENDAR
+══════════════════════════════ */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px}
+.cal-month{font-family:'EB Garamond',serif;font-style:italic;font-size:22px;color:var(--text)}
+.cal-arrow{background:none;border:none;cursor:pointer;color:var(--tl);font-size:18px;padding:4px 8px;line-height:1}
+.cal-arrow:active{color:var(--text)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:4px 16px 16px}
+.cal-head{font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--tf);text-align:center;padding:4px 0}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--tl);cursor:pointer;border-radius:50%;border:1px solid transparent;transition:all 0.15s;position:relative;font-family:'DM Sans',sans-serif;font-weight:300}
+.cal-day:hover{background:var(--al)}
+.cal-day.has-data::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--ln)}
+.cal-day.today-cal{border-color:var(--ac);color:var(--ac)}
+.cal-day.selected-cal{background:var(--text);color:var(--bg);border-color:var(--text)}
+.cal-day.selected-cal::after{background:var(--bg)}
+.cal-day.empty{cursor:default}
+.cal-day.empty:hover{background:none}
+
+/* HISTORY DETAIL */
+.hist-detail{border-top:1px solid var(--ls)}
+.hist-date-bar{padding:14px 20px 10px;display:flex;align-items:center;justify-content:space-between}
+.hist-date-label{font-family:'EB Garamond',serif;font-style:italic;font-size:18px;color:var(--text)}
+.hist-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--tf);line-height:1}
+.hist-tabs{display:flex;border-bottom:1px solid var(--ls);overflow-x:auto}
+.hist-tab{flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--tf);cursor:pointer;transition:all 0.15s}
+.hist-tab.on{color:var(--text);border-bottom-color:var(--text)}
+.hist-content{padding:16px 20px;min-height:200px}
+.hist-section{margin-bottom:16px}
+.hist-label{font-size:8px;letter-spacing:0.22em;text-transform:uppercase;color:var(--tf);margin-bottom:6px}
+.hist-value{font-size:13px;color:var(--text);line-height:1.7;font-weight:300}
+.hist-value.empty-val{color:var(--ls);font-style:italic}
+.hist-mood-chip{display:inline-block;background:var(--text);color:var(--bg);padding:4px 12px;border-radius:12px;font-size:11px;margin-bottom:8px}
+.hist-feeling-chip{display:inline-block;background:var(--al);border:1px solid var(--ac);padding:3px 10px;border-radius:12px;font-size:11px;color:var(--tl);margin:2px}
+.hist-todo-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:5px}
+.hist-check{width:12px;height:12px;flex-shrink:0;border:1px solid var(--ln);margin-top:2px;position:relative}
+.hist-check.done{background:var(--text);border-color:var(--text)}
+.hist-check.done::after{content:'';position:absolute;left:2px;top:0px;width:4px;height:7px;border:1.5px solid var(--bg);border-top:none;border-left:none;transform:rotate(45deg)}
+.hist-todo-text{font-size:12px;color:var(--text);line-height:1.6}
+.hist-todo-text.done{text-decoration:line-through;color:var(--tf)}
+.hist-sched-row{display:grid;grid-template-columns:36px 1fr;gap:8px;padding:4px 0;border-bottom:1px solid rgba(181,162,146,0.2)}
+.hist-sched-time{font-size:10px;color:var(--tf)}
+.hist-sched-val{font-size:12px;color:var(--text)}
+.no-data-msg{padding:32px 0;text-align:center;color:var(--ls);font-size:13px;font-style:italic;font-family:'EB Garamond',serif}
+
+/* SAVE DOT */
+.sdot{position:fixed;top:12px;right:12px;width:5px;height:5px;border-radius:50%;background:var(--ln);opacity:0;transition:opacity 0.3s;z-index:200;pointer-events:none}
+.sdot.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="sdot" id="sdot"></div>
+
+<!-- ══ COVER ══ -->
+<div class="page on" id="pg-cover">
+<div class="cover">
+  <div class="cv-line"></div>
+  <div class="cv-title">Cloumé</div>
+  <div class="cv-sub">J O U R N A L</div>
+  <div class="cv-div"><span></span><div class="cv-dot"></div><span></span></div>
+  <div class="cv-date" id="cv-date"></div>
+  <div class="cv-greet" id="cv-greet"></div>
+  <button class="cv-btn" onclick="go('daily')">begin today</button>
+</div>
+</div>
+
+<!-- ══ DAILY ══ -->
+<div class="page" id="pg-daily">
+<div class="sh"><div class="sl">— daily planner —</div><div class="st">daily</div><div class="sd" id="d-date"></div></div>
+<div class="fb"><div class="fl">M O O D</div>
+  <div class="mrow" id="mood-row">
+    <button class="mb" data-m="🌿 calm">🌿 calm</button>
+    <button class="mb" data-m="☀️ happy">☀️ happy</button>
+    <button class="mb" data-m="🌧 low">🌧 low</button>
+    <button class="mb" data-m="⚡ anxious">⚡ anxious</button>
+    <button class="mb" data-m="🌙 tired">🌙 tired</button>
+    <button class="mb" data-m="🔥 motivated">🔥 motivated</button>
+  </div>
+</div>
+<div class="fb"><div class="fl">T O D A Y ' S  F O C U S</div><textarea class="fi" id="d-focus" rows="2" placeholder="what matters most today..."></textarea></div>
+<div class="fb"><div class="fl">T O - D O</div><div class="tl" id="tl-todo"></div><button class="add-btn" onclick="addTodo('todo')">+ add item</button></div>
+<div class="fb"><div class="fl">I F  I  H A V E  T I M E</div><div class="tl" id="tl-iftime"></div><button class="add-btn" onclick="addTodo('iftime')">+ add item</button></div>
+<div class="fb"><div class="fl">S C H E D U L E</div><div id="sched"></div></div>
+<div class="fb"><div class="fl">G R A T I T U D E</div><textarea class="fi" id="d-grat" rows="3" placeholder="I am grateful for..."></textarea></div>
+</div>
+
+<!-- ══ WEEKLY ══ -->
+<div class="page" id="pg-weekly">
+<div class="sh"><div class="sl">— weekly planner —</div><div class="st">weekly</div></div>
+<div style="padding:12px 20px 4px;display:flex;align-items:center;gap:10px">
+  <span style="font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--tf);flex-shrink:0">W E E K  O F</span>
+  <input id="w-of" style="background:none;border:none;border-bottom:1px solid var(--ls);font-family:'DM Sans',sans-serif;font-weight:300;font-size:12px;color:var(--text);outline:none;flex:1;padding-bottom:3px" placeholder="e.g. Apr 21–27">
+</div>
+<div class="wg" id="wgrid"></div>
+<div class="fb"><div class="fl">P R I O R I T I E S</div><textarea class="fi" id="w-pri" rows="3" placeholder="this week's priorities..."></textarea></div>
+<div class="fb"><div class="fl">R E M I N D E R S</div><textarea class="fi" id="w-rem" rows="2" placeholder="don't forget..."></textarea></div>
+<div class="fb"><div class="fl">N E X T  W E E K</div><textarea class="fi" id="w-nxt" rows="2" placeholder="looking ahead..."></textarea></div>
+<div class="fb"><div class="fl">N O T E S</div><textarea class="fi" id="w-note" rows="3" placeholder="anything else..."></textarea></div>
+</div>
+
+<!-- ══ REFLECTION ══ -->
+<div class="page" id="pg-reflection">
+<div class="sh"><div class="sl">— reflection —</div><div class="st">reflection</div><div class="sd" id="r-date"></div></div>
+<div class="fb"><div class="fl">H O W  D I D  I  F E E L ?</div>
+  <div class="rf" id="feel-row">
+    <button class="rb" data-f="at peace">at peace</button>
+    <button class="rb" data-f="grateful">grateful</button>
+    <button class="rb" data-f="proud">proud</button>
+    <button class="rb" data-f="overwhelmed">overwhelmed</button>
+    <button class="rb" data-f="content">content</button>
+    <button class="rb" data-f="restless">restless</button>
+    <button class="rb" data-f="hopeful">hopeful</button>
+    <button class="rb" data-f="drained">drained</button>
+  </div>
+  <textarea class="fi" id="r-feel" rows="2" placeholder="in my own words..." style="margin-top:10px"></textarea>
+</div>
+<div class="fb"><div class="fl">T H R E E  G R E A T  T H I N G S</div>
+  <div class="three">
+    <div class="thr"><span class="thn">i.</span><input class="thi" id="r-t1" placeholder="..."></div>
+    <div class="thr"><span class="thn">ii.</span><input class="thi" id="r-t2" placeholder="..."></div>
+    <div class="thr"><span class="thn">iii.</span><input class="thi" id="r-t3" placeholder="..."></div>
+  </div>
+</div>
+<div class="fb"><div class="fl">C H A L L E N G E S</div><textarea class="fi" id="r-chal" rows="3" placeholder="what was hard..."></textarea></div>
+<div class="fb"><div class="fl">A C H I E V E M E N T S</div><textarea class="fi" id="r-ach" rows="3" placeholder="what I'm proud of..."></textarea></div>
+<div class="fb"><div class="fl">G R A T E F U L  F O R</div><textarea class="fi" id="r-grat" rows="2" placeholder="..."></textarea></div>
+</div>
+
+<!-- ══ 100 DAY ══ -->
+<div class="page" id="pg-challenge">
+<div class="sh"><div class="sl">— 100-day challenge —</div><div class="st">100 days<br>with myself</div><div class="sd" style="font-style:italic;font-family:'EB Garamond',serif;font-size:12px;margin-top:3px">a gentle journey, one day at a time</div></div>
+<div class="fb"><div class="fl">M Y  C H A L L E N G E</div><textarea class="fi" id="c-title" rows="2" placeholder="what I'm committing to..."></textarea></div>
+<div class="cprog" id="c-prog">0 / 100 days</div>
+<div class="cgrid" id="cgrid"></div>
+<div class="fb"><div class="fl">H O W  I T  F E E L S</div><textarea class="fi" id="c-feel" rows="4" placeholder="reflections on this journey..."></textarea></div>
+</div>
+
+<!-- ══ NOTES ══ -->
+<div class="page" id="pg-notes">
+<div class="sh"><div class="sl">— notes —</div><div class="st">notes</div></div>
+<textarea class="nta" id="n-text" placeholder="a quiet place for your thoughts..."></textarea>
+</div>
+
+<!-- ══ HISTORY ══ -->
+<div class="page" id="pg-history">
+<div class="sh"><div class="sl">— history —</div><div class="st">past days</div></div>
+
+<!-- Calendar -->
+<div class="cal-nav">
+  <button class="cal-arrow" onclick="calPrev()">‹</button>
+  <div class="cal-month" id="cal-month-label"></div>
+  <button class="cal-arrow" onclick="calNext()">›</button>
+</div>
+<div class="cal-grid" id="cal-grid"></div>
+
+<!-- Detail panel -->
+<div class="hist-detail" id="hist-detail" style="display:none">
+  <div class="hist-date-bar">
+    <div class="hist-date-label" id="hist-date-label"></div>
+    <button class="hist-close" onclick="closeHistDetail()">×</button>
+  </div>
+  <div class="hist-tabs" id="hist-tabs"></div>
+  <div class="hist-content" id="hist-content"></div>
+</div>
+</div>
+
+<!-- ══ NAV BAR ══ -->
+<nav class="nav">
+  <button class="nb on" id="nb-cover" onclick="go('cover')">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>home
+  </button>
+  <button class="nb" id="nb-daily" onclick="go('daily')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>daily
+  </button>
+  <button class="nb" id="nb-weekly" onclick="go('weekly')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="10"/><line x1="15" y1="4" x2="15" y2="10"/></svg>weekly
+  </button>
+  <button class="nb" id="nb-reflection" onclick="go('reflection')">
+    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>reflect
+  </button>
+  <button class="nb" id="nb-challenge" onclick="go('challenge')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>100d
+  </button>
+  <button class="nb" id="nb-notes" onclick="go('notes')">
+    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>notes
+  </button>
+  <button class="nb" id="nb-history" onclick="go('history')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg>history
+  </button>
+</nav>
+
+<script>
+const HOURS=['06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'];
+const WDAYS_S=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const WDAYS_F=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS_F=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function dk(){const d=new Date();return fmt(d)}
+function fmt(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function wk(){const d=new Date(),day=d.getDay(),s=new Date(d);s.setDate(d.getDate()-day);return `w-${fmt(s)}`}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function ld(k,d){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d}catch(e){return d}}
+function flash(){const s=document.getElementById('sdot');s.classList.add('show');clearTimeout(s._t);s._t=setTimeout(()=>s.classList.remove('show'),1200)}
+function bindTA(id,key,ro=false){const e=document.getElementById(id);if(!e)return;e.value=ld(key,'');if(!ro){e.addEventListener('input',()=>{sv(key,e.value);flash()})};e.disabled=ro}
+function bindIN(id,key,ro=false){const e=document.getElementById(id);if(!e)return;e.value=ld(key,'');if(!ro){e.addEventListener('input',()=>{sv(key,e.value);flash()})};e.disabled=ro}
+
+let tdData={todo:[],iftime:[]};
+let scData={};
+
+// ── NAVIGATION ──
+function go(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+name).classList.add('on');
+  document.getElementById('nb-'+name).classList.add('on');
+  window.scrollTo(0,0);
+  if(name==='history')renderCal();
+}
+
+// ── COVER ──
+function initCover(){
+  const d=new Date();
+  document.getElementById('cv-date').textContent=`${WDAYS_F[d.getDay()]}, ${d.getDate()} ${MONTHS_F[d.getMonth()]} ${d.getFullYear()}`;
+  const h=d.getHours();
+  document.getElementById('cv-greet').textContent=h<12?'good morning':h<17?'good afternoon':'good evening';
+}
+
+// ── DAILY ──
+function initDaily(){
+  const D=dk(),d=new Date();
+  document.getElementById('d-date').textContent=`${d.getDate()} ${MONTHS_S[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('r-date').textContent=`${d.getDate()} ${MONTHS_S[d.getMonth()]} ${d.getFullYear()}`;
+  const sm=ld(`mood-${D}`,null);
+  document.querySelectorAll('.mb').forEach(b=>{
+    if(b.dataset.m===sm)b.classList.add('on');
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('.mb').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');sv(`mood-${D}`,b.dataset.m);flash();
+    });
+  });
+  bindTA('d-focus',`focus-${D}`);
+  bindTA('d-grat',`grat-${D}`);
+  tdData.todo=ld(`todo-${D}`,[{t:'',d:false}]);
+  tdData.iftime=ld(`iftime-${D}`,[{t:'',d:false}]);
+  renderTodos('todo');renderTodos('iftime');
+  scData=ld(`sched-${D}`,{});renderSched();
+}
+
+function renderTodos(type,ro=false){
+  const el=document.getElementById('tl-'+type);
+  if(!el)return;
+  el.innerHTML='';
+  const items=tdData[type];
+  items.forEach((item,i)=>{
+    const row=document.createElement('div');row.className='ti';
+    const cb=document.createElement('input');cb.type='checkbox';cb.className='tc';cb.checked=item.d;cb.disabled=ro;
+    const inp=document.createElement('input');inp.type='text';inp.className='tt'+(item.d?' done':'');inp.placeholder='add a task...';inp.value=item.t;inp.disabled=ro;
+    if(!ro){
+      cb.addEventListener('change',()=>{items[i].d=cb.checked;inp.classList.toggle('done',cb.checked);saveTD(type)});
+      inp.addEventListener('input',()=>{items[i].t=inp.value;saveTD(type)});
+      inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTodo(type)}});
+    }
+    row.appendChild(cb);row.appendChild(inp);el.appendChild(row);
+  });
+}
+
+function addTodo(type){
+  tdData[type].push({t:'',d:false});renderTodos(type);saveTD(type);
+  const l=document.getElementById('tl-'+type);
+  const ins=l.querySelectorAll('.tt');if(ins.length)ins[ins.length-1].focus();
+}
+function saveTD(type){const D=dk();sv(type==='todo'?`todo-${D}`:`iftime-${D}`,tdData[type]);flash()}
+
+function renderSched(ro=false){
+  const D=dk(),el=document.getElementById('sched');if(!el)return;el.innerHTML='';
+  HOURS.forEach(h=>{
+    const row=document.createElement('div');row.className='sc-row';
+    const t=document.createElement('div');t.className='sc-time';t.textContent=h;
+    const inp=document.createElement('input');inp.className='sc-in';inp.placeholder='—';inp.value=scData[h]||'';inp.disabled=ro;
+    if(!ro)inp.addEventListener('input',()=>{scData[h]=inp.value;sv(`sched-${D}`,scData);flash()});
+    row.appendChild(t);row.appendChild(inp);el.appendChild(row);
+  });
+}
+
+// ── WEEKLY ──
+function initWeekly(){
+  const W=wk();
+  bindIN('w-of',`${W}-of`);
+  const g=document.getElementById('wgrid');g.innerHTML='';
+  WDAYS_S.forEach(day=>{
+    const col=document.createElement('div');col.className='wd';
+    const nm=document.createElement('div');nm.className='wdn';nm.textContent=day;
+    const ta=document.createElement('textarea');ta.className='wdi';
+    const key=`${W}-${day}`;ta.value=ld(key,'');
+    ta.addEventListener('input',()=>{sv(key,ta.value);flash()});
+    col.appendChild(nm);col.appendChild(ta);g.appendChild(col);
+  });
+  bindTA('w-pri',`${W}-pri`);bindTA('w-rem',`${W}-rem`);bindTA('w-nxt',`${W}-nxt`);bindTA('w-note',`${W}-note`);
+}
+
+// ── REFLECTION ──
+function initReflection(){
+  const D=dk();
+  const sf=ld(`refl-f-${D}`,[]);
+  document.querySelectorAll('.rb').forEach(b=>{
+    if(sf.includes(b.dataset.f))b.classList.add('on');
+    b.addEventListener('click',()=>{
+      b.classList.toggle('on');
+      const sel=[...document.querySelectorAll('.rb.on')].map(x=>x.dataset.f);
+      sv(`refl-f-${D}`,sel);flash();
+    });
+  });
+  bindTA('r-feel',`refl-ft-${D}`);
+  bindIN('r-t1',`refl-t1-${D}`);bindIN('r-t2',`refl-t2-${D}`);bindIN('r-t3',`refl-t3-${D}`);
+  bindTA('r-chal',`refl-ch-${D}`);bindTA('r-ach',`refl-ac-${D}`);bindTA('r-grat',`refl-gr-${D}`);
+}
+
+// ── 100 DAY ──
+function initChallenge(){
+  const done=ld('c-done',[]);
+  bindTA('c-title','c-title-v');bindTA('c-feel','c-feel-v');
+  const g=document.getElementById('cgrid');g.innerHTML='';
+  const start=ld('c-start',null);
+  let todayN=null;
+  if(start){const diff=Math.floor((new Date(dk())-new Date(start))/86400000)+1;if(diff>=1&&diff<=100)todayN=diff}
+  for(let i=1;i<=100;i++){
+    const b=document.createElement('button');b.className='dd';b.textContent=i;
+    if(done.includes(i))b.classList.add('on');
+    if(i===todayN)b.classList.add('today-d');
+    b.addEventListener('click',()=>{
+      if(!ld('c-start',null)&&!done.includes(i))sv('c-start',dk());
+      const idx=done.indexOf(i);
+      if(idx>-1)done.splice(idx,1);else done.push(i);
+      sv('c-done',done);b.classList.toggle('on');
+      document.getElementById('c-prog').textContent=`${done.length} / 100 days`;flash();
+    });
+    g.appendChild(b);
+  }
+  document.getElementById('c-prog').textContent=`${done.length} / 100 days`;
+}
+
+// ── NOTES ──
+function initNotes(){bindTA('n-text','notes-v')}
+
+// ══════════════════════════════════════════
+// HISTORY CALENDAR
+// ══════════════════════════════════════════
+let calYear, calMonth;
+
+function initCal(){
+  const d=new Date();calYear=d.getFullYear();calMonth=d.getMonth();
+}
+
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--}renderCal()}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++}renderCal()}
+
+function hasAnyData(dateKey){
+  const keys=[`mood-${dateKey}`,`focus-${dateKey}`,`grat-${dateKey}`,`todo-${dateKey}`,`refl-ft-${dateKey}`,`refl-t1-${dateKey}`,`refl-ch-${dateKey}`,`refl-ac-${dateKey}`];
+  return keys.some(k=>{
+    const v=localStorage.getItem(k);
+    if(!v)return false;
+    try{const p=JSON.parse(v);if(Array.isArray(p))return p.some(i=>i.t);return p!==''&&p!==null}catch{return false}
+  });
+}
+
+function renderCal(){
+  document.getElementById('cal-month-label').textContent=`${MONTHS_F[calMonth]} ${calYear}`;
+  const grid=document.getElementById('cal-grid');grid.innerHTML='';
+  const today=dk();
+  // Day headers
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{
+    const h=document.createElement('div');h.className='cal-head';h.textContent=d;grid.appendChild(h);
+  });
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  // Empty cells
+  for(let i=0;i<firstDay;i++){const e=document.createElement('div');e.className='cal-day empty';grid.appendChild(e)}
+  // Day cells
+  for(let d=1;d<=daysInMonth;d++){
+    const dateKey=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cell=document.createElement('div');cell.className='cal-day';cell.textContent=d;
+    if(dateKey===today)cell.classList.add('today-cal');
+    if(hasAnyData(dateKey))cell.classList.add('has-data');
+    cell.addEventListener('click',()=>showHistDetail(dateKey,d));
+    grid.appendChild(cell);
+  }
+}
+
+let selectedDateKey=null;
+let histActiveTab='daily';
+
+function showHistDetail(dateKey,day){
+  // Deselect previous
+  document.querySelectorAll('.cal-day.selected-cal').forEach(c=>c.classList.remove('selected-cal'));
+  // Select current
+  const cells=document.querySelectorAll('.cal-day');
+  cells.forEach(c=>{if(parseInt(c.textContent)===day&&!c.classList.contains('empty'))c.classList.add('selected-cal')});
+
+  selectedDateKey=dateKey;
+  const d=new Date(dateKey+'T00:00:00');
+  document.getElementById('hist-date-label').textContent=`${WDAYS_F[d.getDay()]}, ${d.getDate()} ${MONTHS_F[d.getMonth()]}`;
+
+  // Tabs
+  const tabs=document.getElementById('hist-tabs');
+  tabs.innerHTML='';
+  const tabList=[{id:'daily',label:'Daily'},{id:'reflection',label:'Reflect'},{id:'weekly',label:'Weekly'}];
+  tabList.forEach(tab=>{
+    const b=document.createElement('button');b.className='hist-tab'+(histActiveTab===tab.id?' on':'');
+    b.textContent=tab.label;
+    b.addEventListener('click',()=>{histActiveTab=tab.id;showHistTab(dateKey)});
+    tabs.appendChild(b);
+  });
+
+  document.getElementById('hist-detail').style.display='block';
+  showHistTab(dateKey);
+  document.getElementById('hist-detail').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function showHistTab(dateKey){
+  document.querySelectorAll('.hist-tab').forEach(t=>t.classList.toggle('on',t.textContent.toLowerCase().startsWith(histActiveTab==='reflection'?'ref':histActiveTab)));
+  const c=document.getElementById('hist-content');c.innerHTML='';
+
+  if(histActiveTab==='daily'){renderHistDaily(dateKey,c)}
+  else if(histActiveTab==='reflection'){renderHistReflection(dateKey,c)}
+  else if(histActiveTab==='weekly'){renderHistWeekly(dateKey,c)}
+}
+
+function val(txt){return `<div class="hist-value${txt?'':' empty-val'}">${txt||'—'}</div>`}
+
+function renderHistDaily(dk2,c){
+  const mood=ld(`mood-${dk2}`,null);
+  const focus=ld(`focus-${dk2}`,'');
+  const grat=ld(`grat-${dk2}`,'');
+  const todos=ld(`todo-${dk2}`,[]);
+  const iftime=ld(`iftime-${dk2}`,[]);
+  const sched=ld(`sched-${dk2}`,{});
+  const hasSched=Object.values(sched).some(v=>v);
+
+  let html='';
+  if(mood)html+=`<div class="hist-section"><div class="hist-label">M O O D</div><span class="hist-mood-chip">${mood}</span></div>`;
+  html+=`<div class="hist-section"><div class="hist-label">T O D A Y ' S  F O C U S</div>${val(focus)}</div>`;
+
+  if(todos.length){
+    html+=`<div class="hist-section"><div class="hist-label">T O - D O</div>`;
+    todos.forEach(t=>{if(t.t)html+=`<div class="hist-todo-item"><div class="hist-check${t.d?' done':''}"></div><div class="hist-todo-text${t.d?' done':''}">${t.t}</div></div>`});
+    html+=`</div>`;
+  }
+  if(iftime.length&&iftime.some(t=>t.t)){
+    html+=`<div class="hist-section"><div class="hist-label">I F  I  H A V E  T I M E</div>`;
+    iftime.forEach(t=>{if(t.t)html+=`<div class="hist-todo-item"><div class="hist-check${t.d?' done':''}"></div><div class="hist-todo-text${t.d?' done':''}">${t.t}</div></div>`});
+    html+=`</div>`;
+  }
+  if(hasSched){
+    html+=`<div class="hist-section"><div class="hist-label">S C H E D U L E</div>`;
+    HOURS.forEach(h=>{if(sched[h])html+=`<div class="hist-sched-row"><div class="hist-sched-time">${h}</div><div class="hist-sched-val">${sched[h]}</div></div>`});
+    html+=`</div>`;
+  }
+  html+=`<div class="hist-section"><div class="hist-label">G R A T I T U D E</div>${val(grat)}</div>`;
+
+  if(!mood&&!focus&&!grat&&!todos.some(t=>t.t))html=`<div class="no-data-msg">no entries for this day</div>`;
+  c.innerHTML=html;
+}
+
+function renderHistReflection(dk2,c){
+  const feelings=ld(`refl-f-${dk2}`,[]);
+  const feelText=ld(`refl-ft-${dk2}`,'');
+  const t1=ld(`refl-t1-${dk2}`,''),t2=ld(`refl-t2-${dk2}`,''),t3=ld(`refl-t3-${dk2}`,'');
+  const chal=ld(`refl-ch-${dk2}`,''),ach=ld(`refl-ac-${dk2}`,''),grat=ld(`refl-gr-${dk2}`,'');
+
+  let html='';
+  if(feelings.length){
+    html+=`<div class="hist-section"><div class="hist-label">F E E L I N G S</div>`;
+    feelings.forEach(f=>html+=`<span class="hist-feeling-chip">${f}</span>`);
+    html+=`</div>`;
+  }
+  if(feelText)html+=`<div class="hist-section"><div class="hist-label">I N  M Y  O W N  W O R D S</div>${val(feelText)}</div>`;
+
+  const things=[t1,t2,t3].filter(Boolean);
+  if(things.length){
+    html+=`<div class="hist-section"><div class="hist-label">T H R E E  G R E A T  T H I N G S</div>`;
+    things.forEach((t,i)=>html+=`<div class="hist-todo-item"><span style="font-family:'EB Garamond',serif;font-style:italic;font-size:14px;color:var(--ln);flex-shrink:0">${['i.','ii.','iii.'][i]}</span><div class="hist-value" style="margin:0">${t}</div></div>`);
+    html+=`</div>`;
+  }
+  if(chal)html+=`<div class="hist-section"><div class="hist-label">C H A L L E N G E S</div>${val(chal)}</div>`;
+  if(ach)html+=`<div class="hist-section"><div class="hist-label">A C H I E V E M E N T S</div>${val(ach)}</div>`;
+  if(grat)html+=`<div class="hist-section"><div class="hist-label">G R A T E F U L  F O R</div>${val(grat)}</div>`;
+
+  if(!html)html=`<div class="no-data-msg">no reflection for this day</div>`;
+  c.innerHTML=html;
+}
+
+function renderHistWeekly(dk2,c){
+  // Find week key for this date
+  const d=new Date(dk2+'T00:00:00');
+  const day=d.getDay();const s=new Date(d);s.setDate(d.getDate()-day);
+  const W=`w-${fmt(s)}`;
+  const pri=ld(`${W}-pri`,''),rem=ld(`${W}-rem`,''),nxt=ld(`${W}-nxt`,''),note=ld(`${W}-note`,'');
+  let html='';
+  if(pri||rem||nxt||note){
+    html+=`<div class="hist-section"><div class="hist-label">P R I O R I T I E S</div>${val(pri)}</div>`;
+    html+=`<div class="hist-section"><div class="hist-label">R E M I N D E R S</div>${val(rem)}</div>`;
+    html+=`<div class="hist-section"><div class="hist-label">N E X T  W E E K</div>${val(nxt)}</div>`;
+    html+=`<div class="hist-section"><div class="hist-label">N O T E S</div>${val(note)}</div>`;
+  } else {
+    html=`<div class="no-data-msg">no weekly data for this period</div>`;
+  }
+  c.innerHTML=html;
+}
+
+function closeHistDetail(){
+  document.getElementById('hist-detail').style.display='none';
+  document.querySelectorAll('.cal-day.selected-cal').forEach(c=>c.classList.remove('selected-cal'));
+  selectedDateKey=null;
+}
+
+// ── INIT ──
+initCover();initCal();initDaily();initWeekly();initReflection();initChallenge();initNotes();
+</script>
+</body>
+</html>
